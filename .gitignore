@@ -1,0 +1,8 @@
+.cache/
+.cache/**
+build/
+build/**
+generated/
+generated/**
+third-party/install/**
+**/__pycache__

@@ -1,0 +1,45 @@
+# vim: filetype=make
+# kate: syntax Makefile
+
+ifdef CROSS_TC
+	CC:=$(CROSS_TC)-gcc
+	CXX:=$(CROSS_TC)-g++
+	STRIP:=$(CROSS_TC)-strip
+	AR:=$(CROSS_TC)-gcc-ar
+	RANLIB:=$(CROSS_TC)-gcc-ranlib
+	CFLAGS?=-O2
+endif
+
+ifdef NATIVE_TC
+	CC:=gcc
+	CXX:=g++
+	STRIP:=strip
+	AR:=gcc-ar
+	RANLIB:=gcc-ranlib
+	CFLAGS:=-march=native -pipe -O2 -fomit-frame-pointer
+endif
+
+ifndef OUT
+	OUT=libvterm.a
+endif
+
+LIBVTERM=.
+TBLFILES=$(wildcard $(LIBVTERM)/src/encoding/*.tbl)
+INCFILES=$(TBLFILES:.tbl=.inc)
+VTERMCFILES=$(wildcard $(LIBVTERM)/src/*.c)
+VTERMOFILES=$(VTERMCFILES:.c=.o)
+CFLAGS+=-std=c99 -c -Wall -Wno-unused-function -I$(LIBVTERM)/include -I$(LIBVTERM)/src
+
+all: $(INCFILES) $(VTERMOFILES) 
+	mkdir -p build
+	$(AR) rc build/$(OUT) $(VTERMOFILES)
+	$(RANLIB) build/$(OUT)
+
+$(LIBVTERM)/src/%.o:  $(LIBVTERM)/src/%.c
+	$(CC) $(CFLAGS) $? -o $@
+$(LIBVTERM)/src/encoding/%.inc: $(LIBVTERM)/src/encoding/%.tbl
+	@echo TBL $<
+	perl -CSD $(LIBVTERM)/tbl2inc_c.pl $< > $@
+
+clean:
+	rm -f $(VTERMOFILES) build/$(OUT) $(INCFILES)
