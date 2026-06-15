@@ -1,0 +1,6 @@
+[submodule "third-party/FBInk"]
+	path = third-party/FBInk
+	url = https://github.com/NiLuJe/FBInk.git
+[submodule "third-party/libvterm"]
+	path = third-party/libvterm
+	url = https://github.com/neovim/libvterm.git
