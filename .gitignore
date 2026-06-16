@@ -5,4 +5,6 @@ build/**
 generated/
 generated/**
 third-party/install/**
+third-party/libvterm/**
+third-party/FBInk/**
 **/__pycache__
