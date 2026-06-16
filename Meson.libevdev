@@ -1,0 +1,18 @@
+[constants]
+toolchain_path ='/home/clara/Documents/Projects/kobo/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf'
+cross = toolchain_path + '/bin/arm-none-linux-gnueabihf'
+
+[binaries]
+c = cross + '-gcc'
+cpp = cross + '-g++'
+ar = cross + '-gcc-ar'
+strip = cross + '-strip'
+ranlib = cross + '-gcc-ranlib'
+
+
+[host_machine]
+system = 'linux'
+cpu_family = 'arm'
+cpu = 'armv7l'
+endian = 'little'
+

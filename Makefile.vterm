@@ -37,6 +37,8 @@ all: $(INCFILES) $(VTERMOFILES)
 
 $(LIBVTERM)/src/%.o:  $(LIBVTERM)/src/%.c
 	$(CC) $(CFLAGS) $? -o $@
+$(LIBVTERM)/src/encoding.o: $(LIBVTERM)/src/encoding.c $(INCFILES)
+	$(CC) $(CFLAGS) $? -o $@
 $(LIBVTERM)/src/encoding/%.inc: $(LIBVTERM)/src/encoding/%.tbl
 	@echo TBL $<
 	perl -CSD $(LIBVTERM)/tbl2inc_c.pl $< > $@

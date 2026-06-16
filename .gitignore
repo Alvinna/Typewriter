@@ -7,4 +7,5 @@ generated/**
 third-party/install/**
 third-party/libvterm/**
 third-party/FBInk/**
+third-party/libevdev/**
 **/__pycache__
