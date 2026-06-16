@@ -11,20 +11,22 @@ list(APPEND CMAKE_PREFIX_PATH third-party/install;third-party/install/share)
 
 
 set(sources
-    src/main.cpp
+    src/typewriter/main.cpp
+    src/typewriter/eink.cpp
+    src/typewriter/term.cpp
     )
 
-set(entry src/main.cpp)
+set(entry src/typewriter/main.cpp)
 
 
-include_directories(src third-party/FBInk third-party/libvterm/include
+include_directories(src/typewriter third-party/FBInk third-party/libvterm/include
     third-party/install/include)
 
 
 #set(deps ${libevdev})
 
 
-add_executable(typewriter ${entry} ${deps})
+add_executable(typewriter ${entry} ${sources} ${deps})
 target_link_libraries(typewriter ${CMAKE_SOURCE_DIR}/third-party/FBInk/Release/libfbink.a 
     ${CMAKE_SOURCE_DIR}/third-party/libvterm/build/libvterm.a 
     ${CMAKE_SOURCE_DIR}/third-party/install/lib/libevdev.a)
