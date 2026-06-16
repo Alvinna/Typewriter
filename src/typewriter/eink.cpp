@@ -32,6 +32,13 @@ bool EInk::close() {
     return true;
 }
 
+int EInk::getCols() {
+    return state.max_cols;
+}
+
+int EInk::getRows() {
+    return state.max_rows;
+}
 
 bool EInk::printState() {
 

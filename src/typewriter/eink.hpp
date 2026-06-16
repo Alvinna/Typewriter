@@ -13,7 +13,9 @@ class EInk {
         bool open();
         bool close();
         bool printState();
-
+        
+        int getRows();
+        int getCols();
 
 };
 

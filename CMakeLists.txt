@@ -14,6 +14,8 @@ set(sources
     src/typewriter/main.cpp
     src/typewriter/eink.cpp
     src/typewriter/term.cpp
+    src/typewriter/pty.cpp
+    src/typewriter/events.cpp
     )
 
 set(entry src/typewriter/main.cpp)
@@ -29,6 +31,6 @@ include_directories(src/typewriter third-party/FBInk third-party/libvterm/includ
 add_executable(typewriter ${entry} ${sources} ${deps})
 target_link_libraries(typewriter ${CMAKE_SOURCE_DIR}/third-party/FBInk/Release/libfbink.a 
     ${CMAKE_SOURCE_DIR}/third-party/libvterm/build/libvterm.a 
-    ${CMAKE_SOURCE_DIR}/third-party/install/lib/libevdev.a)
-target_link_options(typewriter PRIVATE -static-libstdc++)
+    ${CMAKE_SOURCE_DIR}/third-party/install/lib/libevdev.a util)
+target_link_options(typewriter PRIVATE -static-libgcc -static-libstdc++ -static)
 
