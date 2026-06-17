@@ -2,20 +2,26 @@
 #include <unistd.h>
 #include <pty.hpp>
 #include <sys/wait.h>
+#include <cstring>
 
 extern char **environ;
 
-bool PTY::open(std::string& cmd, std::string& arg) {
-    
+bool PTY::open(const std::string& shell) {
+
     pid = forkpty(&master, 0, 0, 0);
-        
+    
     if (pid < 0) {
         std::cout << "Error forking PTY" << std::endl;
         return false;
     } 
     else if (pid == 0) {
         // Child
-        execle(cmd.c_str(), arg.c_str(), environ);
+        char * t = (char*)malloc(shell.length() + 1);
+        memcpy(t, shell.c_str(), shell.length()); 
+        t[shell.length()] = '\0';
+
+        char * const args[] = {t, 0};
+        execve(shell.c_str(), args, environ);
     } 
     else {
         // Parent

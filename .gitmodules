@@ -1,6 +1,7 @@
 [submodule "third-party/FBInk"]
 	path = third-party/FBInk
 	url = https://github.com/NiLuJe/FBInk.git
+    ignore = dirty
 [submodule "third-party/libvterm"]
 	path = third-party/libvterm
 	url = https://github.com/neovim/libvterm.git
@@ -8,3 +9,4 @@
 [submodule "third-party/libevdev"]
 	path = third-party/libevdev
 	url = https://gitlab.freedesktop.org/libevdev/libevdev.git
+    ignore = dirty

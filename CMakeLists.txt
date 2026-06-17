@@ -5,7 +5,7 @@ project(typewriter)
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 set(CMAKE_CONFIGURATION_TYPES Release)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 list(APPEND CMAKE_PREFIX_PATH third-party/install;third-party/install/share)
 
@@ -16,6 +16,7 @@ set(sources
     src/typewriter/term.cpp
     src/typewriter/pty.cpp
     src/typewriter/events.cpp
+    src/typewriter/input.cpp
     )
 
 set(entry src/typewriter/main.cpp)

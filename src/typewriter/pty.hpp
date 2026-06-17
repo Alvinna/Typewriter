@@ -12,7 +12,7 @@ class PTY {
         int master;
         struct termios tios;
         
-        bool open(std::string& cmd, std::string& arg);
+        bool open(const std::string& shell);
         bool close();
         bool setSize(int rows, int cols);
         void write(std::string& text);
