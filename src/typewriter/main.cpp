@@ -44,6 +44,7 @@ int main() {
         
         int n = pty.read(b, 65536);
         if (n > 0) {
+            //terminal.write(std::string(b, n)); 
             std::cout << std::string(b, n) << std::flush;
         }
     }
