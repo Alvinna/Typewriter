@@ -26,6 +26,10 @@ bool PTY::open(const std::string& shell) {
     else {
         // Parent
         tcgetattr(master, &tios);
+        // tios.c_lflag |= ECHO;
+        // tios.c_lflag ^= ECHONL;
+        tios.c_lflag &= ~ECHO; 
+        tios.c_lflag &= ~ICANON;
         tcsetattr(master, TCSAFLUSH, &tios);
         
         int flags = fcntl(master, F_GETFL, 0);
@@ -54,4 +58,12 @@ bool PTY::setSize(int rows, int cols) {
 void PTY::write(std::string& text) {
     // System call
     ::write(master, text.c_str(), text.length());
+}
+
+int PTY::read(char* buf, int length) {
+    
+    int n = ::read(master, buf, length);
+    return n;
+
+
 }

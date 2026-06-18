@@ -15,6 +15,8 @@ int main() {
     std::string s = std::string("I\'m in ;)");
     std::string cmd = std::string("/bin/sh");
     std::string c = std::string("pwd");
+    
+    char b[65536]; 
 
     eink.open();
     terminal.open(eink.getRows(), eink.getCols());
@@ -24,19 +26,25 @@ int main() {
     eink.printState(); 
     terminal.write(s);
     pty.setSize(eink.getRows(), eink.getCols());
-    pty.write(c);
    
-    for (int i = 0; i < 100; i++) {
+    std::string tty_input;
+    for (int i = 0; i < 10000; i++) {
+        tty_input.clear();
+
         input.getEvents();
-        std::string tty_input;
         while (input.keys.size() > 0) {
             tty_input.push_back(input.keys.front());
             input.keys.pop_front();
         }
 
         if (tty_input.length() > 0) {
-            std::cout << tty_input << std::endl;
+            //std::cout << tty_input << std::endl;
             pty.write(tty_input);
+        }
+        
+        int n = pty.read(b, 65536);
+        if (n > 0) {
+            std::cout << std::string(b, n) << std::flush;
         }
     }
     std::cout << "times up" << std::endl;

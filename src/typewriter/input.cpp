@@ -56,7 +56,7 @@ bool Input::close() {
 
 bool Input::getEvents() {
 
-    int n_events = epoll_wait(epoll_fd, events, max_inputs, 50);
+    int n_events = epoll_wait(epoll_fd, events, inputs_max_events, 10);
     if (n_events < 0) {
         perror("Error polling");
         return false;
@@ -65,6 +65,7 @@ bool Input::getEvents() {
         return true;
     }
 
+    //std::cout << "getEvent" << std::endl;
         
     for (auto d : devices.keyboards) {
         for (int i = 0; i < n_events; i++) {

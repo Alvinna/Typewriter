@@ -8,7 +8,7 @@
 #include <deque>
 #include <keymap.hpp>
 
-const int max_inputs = 16;
+const int inputs_max_events = 128;
 
 struct EventDevice {
     int fd;
@@ -38,7 +38,7 @@ class Input {
     private:
         InputDevices devices;
         int epoll_fd;
-        struct epoll_event events[max_inputs];
+        struct epoll_event events[inputs_max_events];
         KeycodeTranslation key_translator;
 
         bool populateDevices();
