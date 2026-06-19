@@ -1,6 +1,7 @@
 #ifndef EINK_H
 #define EINK_H
 
+#include <string>
 #include <fbink.h>
 
 class EInk {
@@ -9,6 +10,17 @@ class EInk {
         int fd;
         FBInkConfig config = {0};
         FBInkState state = {0};
+        FBInkOTConfig ot_config = {0};
+        FBInkOTFit ot_fit = {0};
+        
+        int pad_lr = 20;
+        int pad_td = 20;
+        int char_width;
+        int char_height;
+        int cols;
+        int rows;
+        int offset_t;
+        int offset_l;
 
         bool open();
         bool close();
@@ -16,6 +28,13 @@ class EInk {
         
         int getRows();
         int getCols();
+        
+        bool calcCharSize();
+        bool calculateWindowSize();
+
+        bool printText(int row, int col, const std::string& text);
+        bool refreshRect(int row, int col,
+                         int height, int width);
 
 };
 

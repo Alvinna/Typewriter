@@ -1,11 +1,15 @@
 #include <iostream>
 #include <term.hpp>
+#include <eink.hpp>
 
-bool Terminal::open(int rows, int cols) {
+bool Terminal::open() {
 
 
+    if (!eink.open())
+        return false;
+    
     // Allocate new virtual terminal
-    term = vterm_new(rows, cols);
+    term = vterm_new(eink.getRows(), eink.getCols());
     
     // Use UTF8
     vterm_set_utf8(term, 1);
@@ -31,13 +35,15 @@ bool Terminal::open(int rows, int cols) {
     
     // Reset screen
     vterm_screen_reset(screen, 1);
-    
+
     return true;
+    
 }
 
 bool Terminal::close() {
     vterm_free(term);
-    return true;
+
+    return eink.close();
 }
 
 

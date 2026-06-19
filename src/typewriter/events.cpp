@@ -24,10 +24,9 @@ bool EventLoop::start() {
     buf_key2pty.clear();
     buf_pty2term.clear();
 
-    eink.open();
-    terminal.open(eink.getRows(), eink.getCols());
+    terminal.open();
     pty.open(shell);
-    pty.setSize(eink.getRows(), eink.getCols());
+    pty.setSize(terminal.eink.getRows(), terminal.eink.getCols());
     input.open();
     
     return true;
@@ -44,7 +43,6 @@ bool EventLoop::stop() {
     input.close();
     pty.close();
     terminal.close();
-    eink.close();
 
     return true;
 }

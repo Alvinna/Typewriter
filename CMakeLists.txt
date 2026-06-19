@@ -11,7 +11,6 @@ list(APPEND CMAKE_PREFIX_PATH third-party/install;third-party/install/share)
 
 
 set(sources
-    src/typewriter/main.cpp
     src/typewriter/eink.cpp
     src/typewriter/term.cpp
     src/typewriter/pty.cpp
@@ -34,4 +33,11 @@ target_link_libraries(typewriter ${CMAKE_SOURCE_DIR}/third-party/FBInk/Release/l
     ${CMAKE_SOURCE_DIR}/third-party/libvterm/build/libvterm.a 
     ${CMAKE_SOURCE_DIR}/third-party/install/lib/libevdev.a util)
 target_link_options(typewriter PRIVATE -static-libgcc -static-libstdc++ -static)
+
+
+add_executable(etest src/einktest.cpp ${sources} ${deps})
+target_link_libraries(etest ${CMAKE_SOURCE_DIR}/third-party/FBInk/Release/libfbink.a 
+    ${CMAKE_SOURCE_DIR}/third-party/libvterm/build/libvterm.a 
+    ${CMAKE_SOURCE_DIR}/third-party/install/lib/libevdev.a util)
+target_link_options(etest PRIVATE -static-libgcc -static-libstdc++ -static)
 

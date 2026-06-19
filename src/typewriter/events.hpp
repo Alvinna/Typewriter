@@ -38,7 +38,6 @@ class EventLoop {
         std::unordered_map<int, Module*>cb_map;
         int epoll_timeout;
 
-        EInk eink;
         Terminal terminal;    
         PTY pty;
         Input input;

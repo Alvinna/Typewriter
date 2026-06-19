@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vterm.h>
+#include <eink.hpp>
 
 class Terminal {
 
@@ -10,8 +11,9 @@ class Terminal {
         VTerm *term;
         VTermScreen *screen;
         VTermScreenCallbacks cb;
+        EInk eink;
 
-        bool open(int rows, int cols);
+        bool open();
         bool close();
 
         bool write(const std::string &text);
