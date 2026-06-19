@@ -46,7 +46,6 @@ bool Terminal::write(const std::string& text) {
     return true;
 }
 
-
 // Implement screen update behavior here!
 int Terminal::damage(VTermRect rect, void *user) {
     // Get pointer to terminal object

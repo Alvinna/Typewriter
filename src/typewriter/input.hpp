@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <deque>
 #include <keymap.hpp>
+#include <shared.hpp>
 
 const int inputs_max_events = 128;
 
@@ -24,7 +25,7 @@ struct InputDevices {
     std::vector<EventDevice> keyboards;
 };
 
-class Input {
+class Input : public Module{
 
     public:
         std::deque<char> keys;
@@ -32,13 +33,11 @@ class Input {
         bool open();
         bool close();
 
-        bool getEvents();
         
+        bool handleEvent(int fd);
 
     private:
         InputDevices devices;
-        int epoll_fd;
-        struct epoll_event events[inputs_max_events];
         KeycodeTranslation key_translator;
 
         bool populateDevices();

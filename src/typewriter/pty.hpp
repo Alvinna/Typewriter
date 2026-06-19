@@ -1,15 +1,15 @@
 #ifndef PTY_H
 #define PTY_H
+#include <shared.hpp>
 #include <string>
 #include <pty.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
 
-const int pty_max_events = 128;
-const int pty_max_read_size = 4096;
+const int PTY_BUFFER_SIZE = 65536;
 
-class PTY {
+class PTY : public Module{
 
     public:
         pid_t pid;
@@ -20,11 +20,10 @@ class PTY {
         bool close();
         bool setSize(int rows, int cols);
         void write(std::string& text);
-        int read(char* buf, int length);
 
-    private:
-        int epoll_fd;
-        struct epoll_event events[pty_max_events];
+        bool handleEvent(int fd);
+    
+        char buf[PTY_BUFFER_SIZE];
 
 };
 

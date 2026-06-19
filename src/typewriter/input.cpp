@@ -7,34 +7,17 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <input.hpp>
+#include <events.hpp>
 
 
 bool Input::open() {
     
-    struct epoll_event event;
-    event.events = EPOLLIN | EPOLLET;
-
-    epoll_fd = epoll_create1(0);
-
-    if (epoll_fd == -1) {
-        perror("Error creating epoll handle");
-        return false;
-    }
-    
     populateDevices();
 
     for (auto d : devices.keyboards) {
-        std::cout << d.path << ", " << 
-            d.name << ", " << d.fd << std::endl;
-        
-        event.data.fd = d.fd;
-        if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, d.fd, &event) == -1) {
-            perror("Error registering epoll for input");
-            return false;
-        }
+        EventLoop::instance().registerCallback(d.fd, this);        
     }
     
-
     return true;
 
 }
@@ -54,46 +37,36 @@ bool Input::close() {
     return true;
 }
 
-bool Input::getEvents() {
+bool Input::handleEvent(int fd) {
 
-    int n_events = epoll_wait(epoll_fd, events, inputs_max_events, 10);
-    if (n_events < 0) {
-        perror("Error polling");
-        return false;
-    }
-    else if (n_events == 0) {
-        return true;
-    }
-
-    //std::cout << "getEvent" << std::endl;
-        
     for (auto d : devices.keyboards) {
-        for (int i = 0; i < n_events; i++) {
-                if (events[i].data.fd == d.fd) {
-                    
-                    struct input_event ev;
-                    
-                    while (libevdev_next_event(d.dev, LIBEVDEV_READ_FLAG_NORMAL, &ev) == 0) {
-                        if (ev.type == EV_KEY) {
-                            //std::cout << d.fd << ": " << "code = " << ev.code << ", value = " << ev.value << std::endl;
-                            int s = keys.size(); 
-                            if (ev.value == 1 || ev.value == 2) {
-                                key_translator.press(ev.code, keys);
-                            }
-                            else {
-                                key_translator.release(ev.code, keys);
-                            }
-                            
-                            if (keys.size() > s && key_translator.is_ctrl())
-                                    keys.front() &= 31;
-                            
-                        }
-                    }
+        if (d.fd == fd) {
 
+            struct input_event ev;
+            while (libevdev_next_event(d.dev, LIBEVDEV_READ_FLAG_NORMAL, &ev) == 0) {
+                if (ev.type == EV_KEY) {
+                    int s = keys.size(); 
+                    if (ev.value == 1 || ev.value == 2) {
+                        key_translator.press(ev.code, keys);
+                    }
+                    else {
+                        key_translator.release(ev.code, keys);
+                    }
+                    
+                    if (keys.size() > s && key_translator.is_ctrl())
+                            keys.front() &= 31;
+                    
                 }
+            }
+            break;
         }
     }
-    
+
+    while (keys.size() > 0) {
+        EventLoop::instance().buf_key2pty.push_back(keys.front());
+        keys.pop_front();
+    }
+
     return true;
 }
 

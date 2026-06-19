@@ -3,6 +3,7 @@
 #include <pty.hpp>
 #include <sys/wait.h>
 #include <cstring>
+#include <events.hpp>
 
 extern char **environ;
 
@@ -34,6 +35,9 @@ bool PTY::open(const std::string& shell) {
         
         int flags = fcntl(master, F_GETFL, 0);
         fcntl(master, F_SETFL, flags | O_NONBLOCK);
+        
+        EventLoop::instance().registerCallback(master, this);
+
     }
 
     return true;
@@ -60,10 +64,16 @@ void PTY::write(std::string& text) {
     ::write(master, text.c_str(), text.length());
 }
 
-int PTY::read(char* buf, int length) {
+
+bool PTY::handleEvent(int fd) {
+
+    int n = ::read(master, buf, sizeof(buf));
     
-    int n = ::read(master, buf, length);
-    return n;
+    if (n > 0) {
+        EventLoop::instance().buf_pty2term.insert(
+                EventLoop::instance().buf_pty2term.length(), 
+                buf, n);
+    }
 
-
+    return true;
 }
