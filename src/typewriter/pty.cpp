@@ -36,7 +36,7 @@ bool PTY::open(const std::string& shell) {
         int flags = fcntl(master, F_GETFL, 0);
         fcntl(master, F_SETFL, flags | O_NONBLOCK);
         
-        EventLoop::instance().registerCallback(master, this);
+        EventLoop::instance().registerCallback(master, EPOLLIN | EPOLLHUP, this);
 
     }
 
@@ -65,8 +65,11 @@ void PTY::write(std::string& text) {
 }
 
 
-bool PTY::handleEvent(int fd) {
-
+bool PTY::handleEvent(int fd, struct epoll_event* event) {
+    
+    if (event->events & EPOLLHUP) {
+        return false;
+    }
     int n = ::read(master, buf, sizeof(buf));
     
     if (n > 0) {

@@ -15,7 +15,7 @@ bool Input::open() {
     populateDevices();
 
     for (auto d : devices.keyboards) {
-        EventLoop::instance().registerCallback(d.fd, this);        
+        EventLoop::instance().registerCallback(d.fd, EPOLLIN | EPOLLET, this);        
     }
     
     return true;
@@ -37,7 +37,7 @@ bool Input::close() {
     return true;
 }
 
-bool Input::handleEvent(int fd) {
+bool Input::handleEvent(int fd, struct epoll_event* event) {
 
     for (auto d : devices.keyboards) {
         if (d.fd == fd) {

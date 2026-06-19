@@ -30,7 +30,7 @@ class EventLoop {
         bool stop();
         bool loop();
 
-        bool registerCallback(int fd, Module* mod);
+        bool registerCallback(int fd, uint32_t event_type, Module* mod);
         bool handleTransfer(); 
 
         int epoll_fd;

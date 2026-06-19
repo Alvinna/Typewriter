@@ -21,7 +21,8 @@ class PTY : public Module{
         bool setSize(int rows, int cols);
         void write(std::string& text);
 
-        bool handleEvent(int fd);
+        bool handleEvent(int fd, struct epoll_event* event);
+
     
         char buf[PTY_BUFFER_SIZE];
 

@@ -50,6 +50,7 @@ bool EventLoop::stop() {
 }
 
 bool EventLoop::loop() {
+    bool should_exit = false;
     
     while(true) {
 
@@ -65,20 +66,26 @@ bool EventLoop::loop() {
         
         for (int i = 0; i < n_events; i++) {
             if (cb_map.find(events[i].data.fd) != cb_map.end()) {
-                (cb_map[events[i].data.fd])->handleEvent(events[i].data.fd);
+                if (!(cb_map[events[i].data.fd])->handleEvent(events[i].data.fd, &events[i]))
+                    should_exit = true;
+                    break;
             }
         }
-        
+
         handleTransfer();
+        
+        if (should_exit)
+            break;
+        
     }
 
     return true;
 }
 
-bool EventLoop::registerCallback(int fd, Module* mod) {
+bool EventLoop::registerCallback(int fd, uint32_t event_type, Module* mod) {
 
     struct epoll_event event;
-    event.events = EPOLLIN | EPOLLET;
+    event.events = event_type;
 
     event.data.fd = fd;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1) {
@@ -96,7 +103,7 @@ bool EventLoop::handleTransfer() {
     pty.write(buf_key2pty);
     buf_key2pty.clear();
     std::cout << buf_pty2term << std::flush;
-    //terminal.write(buf_pty2term);
+    terminal.write(buf_pty2term);
     buf_pty2term.clear();
     
     return true;

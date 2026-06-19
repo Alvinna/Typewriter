@@ -33,8 +33,7 @@ class Input : public Module{
         bool open();
         bool close();
 
-        
-        bool handleEvent(int fd);
+        bool handleEvent(int fd, struct epoll_event* event);
 
     private:
         InputDevices devices;
