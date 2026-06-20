@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 
-const int PTY_BUFFER_SIZE = 65536;
+const int PTY_BUFFER_SIZE = 256;
 
 class PTY : public Module{
 

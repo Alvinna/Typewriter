@@ -197,8 +197,8 @@ int Terminal::moverect(VTermRect dest, VTermRect src, void *user) {
 int Terminal::movecursor(VTermPos pos, VTermPos oldpos, int visible, void *user) {
     // Get pointer to terminal object
     Terminal* self = static_cast<Terminal*>(user);
-    std::cout << "movecursor([" << pos.row << ", " << pos.col << "], [" << 
-        oldpos.row << ", " << oldpos.col << "])" << std::endl;
+    //std::cout << "movecursor([" << pos.row << ", " << pos.col << "], [" << 
+      //  oldpos.row << ", " << oldpos.col << "])" << std::endl;
 
     return 1;
 }
