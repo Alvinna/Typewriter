@@ -32,13 +32,6 @@ bool EInk::close() {
     return true;
 }
 
-int EInk::getCols() {
-    return state.max_cols;
-}
-
-int EInk::getRows() {
-    return state.max_rows;
-}
 
 bool EInk::printState() {
 
@@ -106,8 +99,49 @@ bool EInk::refreshRect(int row, int col,
     
     int y1 = row * char_height + offset_t;
     int x1 = col * char_width + offset_l;
-    fbink_refresh(fd, y1, x1, width * char_width - 1, height * char_height - 1, 
+    fbink_refresh(fd, y1, x1, width * char_width, height * char_height, 
             &config);
     return true;
+}
 
+bool EInk::clearRect(int row, int col,
+                 int height, int width) {
+    
+    int y1 = row * char_height + offset_t;
+    int x1 = col * char_width + offset_l;
+    FBInkRect rect;
+    rect.top = y1;
+    rect.left = x1;
+    rect.width = width * char_width;
+    rect.height = height * char_height;
+    
+    fbink_cls(fd, &config, &rect, false);
+
+    return true;
+}
+
+
+
+bool EInk::loadFonts(const std::string& font_regular, const std::string& font_bold,
+        const std::string& font_italic, const std::string& font_bold_italic) {
+
+    int ret = 0;
+
+    ret |= fbink_add_ot_font_v2(font_regular.c_str(), FNT_REGULAR, &ot_config);
+    ret |= fbink_add_ot_font_v2(font_bold.c_str(), FNT_BOLD, &ot_config);
+    ret |= fbink_add_ot_font_v2(font_italic.c_str(), FNT_ITALIC, &ot_config);
+    ret |= fbink_add_ot_font_v2(font_bold_italic.c_str(), FNT_BOLD_ITALIC, &ot_config);
+    
+    ot_config.is_formatted = false;
+    ot_config.size_pt = 13;
+    ot_config.padding = 10;
+
+    return !ret;
+
+}
+
+bool EInk::freeFonts() {
+
+    fbink_free_ot_fonts_v2(&ot_config);
+    return true;
 }

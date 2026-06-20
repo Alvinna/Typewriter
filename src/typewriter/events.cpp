@@ -26,7 +26,7 @@ bool EventLoop::start() {
 
     terminal.open();
     pty.open(shell);
-    pty.setSize(terminal.eink.getRows(), terminal.eink.getCols());
+    pty.setSize(terminal.eink.rows, terminal.eink.cols);
     input.open();
     
     return true;

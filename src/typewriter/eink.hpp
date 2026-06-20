@@ -26,14 +26,17 @@ class EInk {
         bool close();
         bool printState();
         
-        int getRows();
-        int getCols();
         
+        bool loadFonts(const std::string& font_regular, const std::string& font_bold,
+                const std::string& font_italic, const std::string& font_bold_italic);
+        bool freeFonts();
         bool calcCharSize();
         bool calculateWindowSize();
 
         bool printText(int row, int col, const std::string& text);
         bool refreshRect(int row, int col,
+                         int height, int width);
+        bool clearRect(int row, int col,
                          int height, int width);
 
 };
