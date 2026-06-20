@@ -100,7 +100,7 @@ bool EventLoop::registerCallback(int fd, uint32_t event_type, Module* mod) {
 bool EventLoop::handleTransfer() {
     pty.write(buf_key2pty);
     buf_key2pty.clear();
-    std::cout << buf_pty2term << std::flush;
+    //std::cout << buf_pty2term << std::flush;
     terminal.write(buf_pty2term);
     buf_pty2term.clear();
     

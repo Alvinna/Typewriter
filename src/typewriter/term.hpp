@@ -8,7 +8,7 @@
 #include <sys/time.h>
 
 constexpr int DMG_INTERVAL = 10e6; // 10 ms
-constexpr int UPD_INTERVAL = 1; // 1s
+constexpr int UPD_INTERVAL = 500e6; // 0.5s
 constexpr int TERMINAL_MAX_LINE_WIDTH = 1024;
 
 class Terminal : public Module{

@@ -68,7 +68,7 @@ bool Terminal::open() {
             return false;
         }
    
-    ts_upd.it_value.tv_sec = UPD_INTERVAL;
+    ts_upd.it_value.tv_nsec = UPD_INTERVAL;
     timerfd_settime(timer_fd_upd, 0, &ts_off, NULL);
 
 
@@ -97,8 +97,6 @@ bool Terminal::updateScreen(int row, int col, int height, int width) {
 
     for (int r = row; r < row + height; r++) {
 
-        std::cout << r << std::endl;
-        
         VTermRect extent;
         extent.start_row = r;
         extent.start_col = col;
@@ -131,7 +129,6 @@ bool Terminal::updateScreen(int row, int col, int height, int width) {
         
                 if (w == 0)
                     break;
-
                 eink.printText(r, c, std::string(&lbuf[c - col], w));
                 c = extent.end_col + 1;
 
@@ -186,10 +183,10 @@ int Terminal::damage(VTermRect rect, void *user) {
 int Terminal::moverect(VTermRect dest, VTermRect src, void *user) {
     // Get pointer to terminal object
     Terminal* self = static_cast<Terminal*>(user);
-    std::cout << "moverect([" << dest.start_row << ", " << dest.start_col << 
-        ", " << dest.end_row << ", " << dest.end_col << 
-        src.start_row << ", " << src.start_col << 
-        ", " << src.end_row << ", " << src.end_col << "])"<< std::endl;
+    // std::cout << "moverect([" << dest.start_row << ", " << dest.start_col << 
+    //     ", " << dest.end_row << ", " << dest.end_col << 
+    //     src.start_row << ", " << src.start_col << 
+    //     ", " << src.end_row << ", " << src.end_col << "])"<< std::endl;
 
     damage(dest, user);
     return 1;
@@ -227,14 +224,14 @@ int Terminal::resize(int rows, int cols, void *user) {
 int Terminal::sb_pushline(int cols, const VTermScreenCell *cells, void *user) {
     // Get pointer to terminal object
     Terminal* self = static_cast<Terminal*>(user);
-    std::cout << "sb_pushline(" << cols << ")" << std::endl;
+    // std::cout << "sb_pushline(" << cols << ")" << std::endl;
 
     return 1;
 }
 int Terminal::sb_popline(int cols, VTermScreenCell *cells, void *user) {
     // Get pointer to terminal object
     Terminal* self = static_cast<Terminal*>(user);
-    std::cout << "sb_popline(" << cols << ")" << std::endl;
+    // std::cout << "sb_popline(" << cols << ")" << std::endl;
 
     return 1;
 }
@@ -256,6 +253,8 @@ bool Terminal::handleEvent(int fd, struct epoll_event* event) {
         if (should_update) {
 
             eink.config.no_refresh = true;
+
+            eink.ot_config.padding = FULL_PADDING;
             updateScreen(update_start_row, update_start_col, 
                     update_end_row - update_start_row, update_end_col - update_start_col);
 
@@ -276,6 +275,8 @@ bool Terminal::handleEvent(int fd, struct epoll_event* event) {
         if (should_update) {
 
             eink.config.no_refresh = true;
+
+            //eink.ot_config.padding = NO_PADDING;
             updateScreen(update_start_row, update_start_col, 
                     update_end_row - update_start_row, update_end_col - update_start_col);
 
