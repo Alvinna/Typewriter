@@ -7,7 +7,7 @@
 #include <eink.hpp>
 #include <sys/time.h>
 
-constexpr int DMG_INTERVAL = 10e6; // 10 ms
+constexpr int DMG_INTERVAL = 40e6; // 
 constexpr int UPD_INTERVAL = 500e6; // 0.5s
 constexpr int TERMINAL_MAX_LINE_WIDTH = 1024;
 
@@ -18,6 +18,9 @@ class Terminal : public Module{
         VTermScreen *screen;
         VTermScreenCallbacks cb;
         EInk eink;
+        
+        bool cursor_visible;
+        EInkCursorType cursor_type;
         int timer_fd_dmg;
         int timer_fd_upd;
         itimerspec ts_off = {};
@@ -31,12 +34,19 @@ class Terminal : public Module{
         int update_end_row = 0;
         int update_end_col = 0;
 
+        bool should_update_cursor = false;
+        int cursor_old_row = 0;
+        int cursor_old_col = 0;
+        int cursor_new_row = 0;
+        int cursor_new_col = 0;
+
         bool open();
         bool close();
 
         bool write(const std::string &text);
 
         bool updateScreen(int row, int col, int height, int width);
+        bool updateCursor(int new_row, int new_col, int old_row, int old_col, bool clearOld);
 
         bool handleEvent(int fd, struct epoll_event* event);
 

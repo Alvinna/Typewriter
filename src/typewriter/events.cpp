@@ -19,7 +19,7 @@ bool EventLoop::start() {
         perror("Error creating epoll handle");
         return false;
     }
-    epoll_timeout = 10;
+    epoll_timeout = 10000;
 
     buf_key2pty.clear();
     buf_pty2term.clear();

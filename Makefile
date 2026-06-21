@@ -29,7 +29,7 @@ clean:
 deps: fbink libvterm libevdev
 
 fbink:
-	cd third-party/FBInk && make static 
+	cd third-party/FBInk && make static
 
 libvterm:
 	cd third-party/libvterm && make CROSS_TC=$(CROSS_TC) -f ../../Makefile.vterm

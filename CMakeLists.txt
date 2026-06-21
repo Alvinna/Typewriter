@@ -22,7 +22,7 @@ set(entry src/typewriter/main.cpp)
 
 
 include_directories(src/typewriter third-party/FBInk third-party/libvterm/include
-    third-party/install/include)
+    third-party/libvterm/src third-party/install/include)
 
 
 #set(deps ${libevdev})

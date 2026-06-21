@@ -9,4 +9,4 @@ third-party/libvterm/**
 third-party/FBInk/**
 third-party/libevdev/**
 **/__pycache__
-resources/fonts/**
+resources/**

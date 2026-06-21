@@ -4,6 +4,12 @@
 #include <string>
 #include <fbink.h>
 
+enum EInkCursorType{
+    EINK_CURSOR_BLOCK, 
+    EINK_CURSOR_VERTICAL, 
+    EINK_CURSOR_HORIZONTAL
+};
+
 class EInk {
 
     public:
@@ -38,6 +44,7 @@ class EInk {
                          int height, int width);
         bool clearRect(int row, int col,
                          int height, int width);
+        bool invertCursor(int row, int col, EInkCursorType type);
 
 };
 

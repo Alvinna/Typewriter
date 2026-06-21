@@ -22,6 +22,7 @@ bool EInk::open() {
     // Get framebuffer states
     fbink_get_state(&config, &state);
 
+
     return true;
 }
 
@@ -52,8 +53,8 @@ bool EInk::calcCharSize() {
     ot_fit = {};
 
     // Use a full block character to calculate monospace font's size ;)
-    int ret = fbink_print_ot(fd, "█", &ot_config, &config, &ot_fit);
-    char_width = ot_fit.bbox.width;
+    int ret = fbink_print_ot(fd, "████████", &ot_config, &config, &ot_fit);
+    char_width = ot_fit.bbox.width >> 3;
     char_height = ot_fit.bbox.height;
 
     ot_config.compute_only = c;
@@ -133,8 +134,8 @@ bool EInk::loadFonts(const std::string& font_regular, const std::string& font_bo
     ret |= fbink_add_ot_font_v2(font_bold_italic.c_str(), FNT_BOLD_ITALIC, &ot_config);
     
     ot_config.is_formatted = false;
-    ot_config.size_pt = 13;
-    ot_config.padding = 10;
+    ot_config.size_pt = 14;
+    ot_config.padding = 0;
 
     return !ret;
 
@@ -143,5 +144,39 @@ bool EInk::loadFonts(const std::string& font_regular, const std::string& font_bo
 bool EInk::freeFonts() {
 
     fbink_free_ot_fonts_v2(&ot_config);
+    return true;
+}
+
+
+
+bool EInk::invertCursor(int row, int col, EInkCursorType type) {
+    const int cursor_width = 2;
+
+    int y1 = row * char_height + offset_t;
+    int x1 = col * char_width + offset_l;
+    FBInkRect rect;
+
+    switch (type) {
+        case EINK_CURSOR_BLOCK:
+            rect.top = y1;
+            rect.left = x1;
+            rect.width = char_width * 1;
+            rect.height = char_height * 1;
+            break;
+        case EINK_CURSOR_VERTICAL:
+            rect.top = y1;
+            rect.left = x1;
+            rect.width = 2;
+            rect.height = char_height * 1;
+            break;
+        case EINK_CURSOR_HORIZONTAL:
+            rect.top = y1 + char_height - 4;
+            rect.left = x1;
+            rect.width = char_width;
+            rect.height = 4;
+            break;
+    }
+
+    fbink_invert_rect(fd, &rect, false);
     return true;
 }
