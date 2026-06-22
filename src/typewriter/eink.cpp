@@ -21,7 +21,13 @@ bool EInk::open() {
 
     // Get framebuffer states
     fbink_get_state(&config, &state);
+    
+    config.is_quiet = true;
+    config.is_verbose = false;
+    config.saturation_boost = 50;
 
+    fbink_update_verbosity(&config);
+    
 
     return true;
 }
@@ -88,6 +94,8 @@ bool EInk::printText(int row, int col, const std::string& text) {
 
     ot_config.margins.top = offset_t + row * char_height;
     ot_config.margins.left = offset_l + col * char_width;
+    //std::cout << text.c_str() << std::endl;
+    // std::cout << ot_config.margins.top << ", " << ot_config.margins.left << std::endl;
     fbink_print_ot(fd, text.c_str(), &ot_config, &config, NULL);
     
     return true;

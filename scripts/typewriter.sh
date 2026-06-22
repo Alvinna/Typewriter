@@ -259,55 +259,7 @@ esac
 
 # The actual swap is done in a function, because we can disable it in the Developer settings, and we want to honor it on restart.
 ko_do_fbdepth() {
-    # On sunxi, the fb state is meaningless, and the minimal disp fb doesn't actually support 8bpp anyway...
-    if [ "${PLATFORM}" = "b300-ntx" ]; then
-        # NOTE: The fb state is *completely* meaningless on this platform.
-        #       This is effectively a noop, we're just keeping it for logging purposes...
-        echo "Making sure that rotation is set to Portrait" >>crash.log 2>&1
-        ./fbdepth -R UR >>crash.log 2>&1
-        # We haven't actually done anything, so don't do anything on exit either ;).
-        unset ORIG_FB_BPP
-
-        return
-    fi
-
-    # On color panels, we target 32bpp for, well, color, and sane addressing (it also happens to be their default) ;o).
-    eval "$(./fbink -e | tr ';' '\n' | grep -e hasColorPanel | tr '\n' ';')"
-    # shellcheck disable=SC2154
-    # if [ "${hasColorPanel}" = "1" ]; then
-    #     # If color rendering has been disabled by the user, switch to 8bpp to completely skip CFA processing
-    #     if grep -q '\["color_rendering"\] = false' 'settings.reader.lua' 2>/dev/null; then
-    #         echo "Switching fb bitdepth to 8bpp (to disable CFA) & rotation to Portrait" >>crash.log 2>&1
-    #         ./fbdepth -d 8 -R UR >>crash.log 2>&1
-    #     else
-    #         echo "Switching fb bitdepth to 32bpp & rotation to Portrait" >>crash.log 2>&1
-    #         ./fbdepth -d 32 -R UR >>crash.log 2>&1
-    #     fi
-    #
-    #     return
-    # fi
-
-    # Check if the swap has been disabled...
-    if grep -q '\["dev_startup_no_fbdepth"\] = true' 'settings.reader.lua' 2>/dev/null; then
-        # Swap back to the original bitdepth (in case this was a restart)
-        if [ -n "${ORIG_FB_BPP}" ]; then
-            # Unless we're a Forma/Libra, don't even bother to swap rotation if the fb is @ 16bpp, because RGB565 is terrible anyways,
-            # so there's no faster codepath to achieve, and running in Portrait @ 16bpp might actually be broken on some setups...
-            if [ "${ORIG_FB_BPP}" -eq "16" ] && [ "${PRODUCT}" != "frost" ] && [ "${PRODUCT}" != "storm" ]; then
-                echo "Making sure we're using the original fb bitdepth @ ${ORIG_FB_BPP}bpp & rotation @ ${ORIG_FB_ROTA}" >>crash.log 2>&1
-                ./fbdepth -d "${ORIG_FB_BPP}" -r "${ORIG_FB_ROTA}" >>crash.log 2>&1
-            else
-                echo "Making sure we're using the original fb bitdepth @ ${ORIG_FB_BPP}bpp, and that rotation is set to Portrait" >>crash.log 2>&1
-                ./fbdepth -d "${ORIG_FB_BPP}" -R UR >>crash.log 2>&1
-            fi
-        fi
-    else
-        # Swap to 8bpp if things looke sane
-        if [ -n "${ORIG_FB_BPP}" ]; then
-            echo "Switching fb bitdepth to 8bpp & rotation to Portrait" >>crash.log 2>&1
-            ./fbdepth -d 8 -R UR >>crash.log 2>&1
-        fi
-    fi
+    ./fbdepth -d 8 -r -1 >>crash.log 2>&1
 }
 
 # Ensure we start with a valid nameserver in resolv.conf, otherwise we're stuck with broken name resolution (#6421, #6424).

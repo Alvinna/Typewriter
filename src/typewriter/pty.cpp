@@ -26,12 +26,11 @@ bool PTY::open(const std::string& shell) {
     } 
     else {
         // Parent
-        tcgetattr(master, &tios);
-        // tios.c_lflag |= ECHO;
-        // tios.c_lflag ^= ECHONL;
-        tios.c_lflag &= ~ECHO; 
-        tios.c_lflag &= ~ICANON;
-        tcsetattr(master, TCSAFLUSH, &tios);
+        // tcgetattr(master, &tios);
+        // tios.c_lflag &= ~ECHO; 
+        // tios.c_lflag &= ~ICANON;
+        //
+        // tcsetattr(master, TCSAFLUSH, &tios);
         
         int flags = fcntl(master, F_GETFL, 0);
         fcntl(master, F_SETFL, flags | O_NONBLOCK);

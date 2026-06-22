@@ -17,8 +17,14 @@ bool Terminal::open() {
     const std::string fb("IBMPlexMono-Bold.ttf");
     const std::string fi("IBMPlexMono-Italic.ttf");
     const std::string fbi("IBMPlexMono-BoldItalic.ttf");
+    
+    const std::string fr2("NotoSansMono-Regular.ttf");
+    const std::string fb2("NotoSansMono-Bold.ttf");
+    const std::string fi2("NotoSansMono-Regular.ttf");
+    const std::string fbi2("NotoSansMono-Regular.ttf");
 
     eink.loadFonts(fr, fb, fi, fbi);
+    // eink.loadFonts(fr2, fb2, fi2, fbi2);
     eink.calcCharSize();
     eink.calculateWindowSize();
 
@@ -27,8 +33,8 @@ bool Terminal::open() {
     term = vterm_new(eink.rows, eink.cols);
      
     // Use UTF8
-    vterm_set_utf8(term, 1);
-
+    vterm_set_utf8(term, 0);
+     
     screen = vterm_obtain_screen(term);
     
     // Register callback
@@ -96,7 +102,8 @@ bool Terminal::updateScreen(int row, int col, int height, int width) {
 
     last_row = row;
     last_col = col;
-
+    
+    int c_end;
     // std::cout << "Update screen" << std::endl;
 
     for (int r = row; r < row + height; r++) {
@@ -109,17 +116,20 @@ bool Terminal::updateScreen(int row, int col, int height, int width) {
 
         int l = vterm_screen_get_text(screen, lbuf, width, extent);
 
+
         if (l == 0) {
             eink.clearRect(r, col, 1, width);
         }
         else {
+           
+            
+            if (writer_mode && r == cursor_new_row)
+                c_end = std::min(col + l, cursor_new_col);
+            else
+                c_end = col + l;
+            
 
-
-            if (l < width) {
-                eink.clearRect(r, l, 1, (width - l));
-            }
-
-            for (int c = col; c < col + l;) {
+            for (int c = col; c < c_end;) {
                 VTermPos pos_start;
                 VTermScreenCell cell;
                 pos_start.col = c;
@@ -128,10 +138,10 @@ bool Terminal::updateScreen(int row, int col, int height, int width) {
                 extent.start_row = r;
                 extent.start_col = c;
                 extent.end_row = r + 1;
-                extent.end_col = col + l;
+                extent.end_col = c_end;
 
                 vterm_screen_get_attrs_extent(screen, &extent, pos_start,  VTERM_ALL_ATTRS_MASK);
-                
+                 
                 // std::cout << extent.start_row << ", " << extent.start_col << ", " <<
                 //     extent.end_row << ", " << extent.end_col << std::endl;
                 
@@ -151,38 +161,78 @@ bool Terminal::updateScreen(int row, int col, int height, int width) {
                 else {
                     eink.ot_config.style = FNT_REGULAR;
                 }
+                
+                
+                update_bg_color(&cell.bg);
+                update_fg_color(&cell.fg);
 
                 if (cell.attrs.reverse) {
                     eink.config.is_inverted = true;
                 }
-                else {
+                else
                     eink.config.is_inverted = false;
-                }
+               
                 
-                eink.printText(r, c, std::string(&lbuf[c - col], w));
+                if (r == cursor_new_row && writer_mode) { 
+                    // eink.printText(r, c, std::string(&lbuf[c - col], std::min(w, c_end - c)));
+                    eink.printText(r, c, std::string(&lbuf[c - col], std::min(extent.end_col + 1, cursor_new_col) - col));
+                }
+                else {
+                    eink.printText(r, c, std::string(&lbuf[c - col], w));
+
+                }
+
                 c = extent.end_col + 1;
                 
-                eink.config.is_inverted = false;
                 eink.ot_config.style = FNT_REGULAR;
+                
+                // if (writer_mode && r == cursor_new_row && c >= c_end)
+                //     break;
 
             }
+
+            eink.config.is_inverted = false;
+            fbink_set_fg_pen_rgba(0x00, 0x00, 0x00, 1, false, true);
+            fbink_set_bg_pen_rgba(0xFF, 0xFF, 0xFF, 1, false, true);
+            
+            if (l < width) {
+                if (r == cursor_new_row) {
+                    if (writer_mode) {
+                        eink.clearRect(r, cursor_new_col, 1, (width + col - cursor_new_col));
+                        writer_first_time = false;
+                    }
+                    else if (!writer_mode) {
+                        eink.clearRect(r, extent.end_col + 1, 1, (width - l));
+                    }
+                }
+                else {
+                    eink.clearRect(r, extent.end_col + 1, 1, (width - l));
+                }
+            }
+
+
 
         }
         
     }
 
+
     return true;
 }
 
 bool Terminal::updateCursor(int new_row, int new_col, int old_row, int old_col, bool clearOld) {
-    // TODO: deal with changing cursor type
     
     if (cursor_visible) {
-        if (clearOld) {
-            eink.invertCursor(old_row, old_col, cursor_type);
-        }
 
-        eink.invertCursor(new_row, new_col, cursor_type);
+
+        if (clearOld || (writer_first_time && writer_mode)) {
+            eink.invertCursor(old_row, old_col, cursor_type_old);
+        }
+        
+        if (!writer_mode)
+            eink.invertCursor(new_row, new_col, cursor_type);
+
+        cursor_type_old = cursor_type;
     } 
 
     return true;
@@ -205,7 +255,7 @@ bool Terminal::write(const std::string& text) {
 int Terminal::damage(VTermRect rect, void *user) {
     // Get pointer to terminal object
     Terminal* self = static_cast<Terminal*>(user);
-    //std::cout << "damage(" << rect.start_row << ", " << rect.start_col << 
+    // std::cout << "damage(" << rect.start_row << ", " << rect.start_col << 
     //    ", " << rect.end_row << ", " << rect.end_col << ")"<< std::endl;
    
     if (self->upd_timer_on == false) {
@@ -240,7 +290,7 @@ int Terminal::movecursor(VTermPos pos, VTermPos oldpos, int visible, void *user)
     Terminal* self = static_cast<Terminal*>(user);
     //std::cout << "movecursor([" << pos.row << ", " << pos.col << "], [" << 
       //  oldpos.row << ", " << oldpos.col << "])" << std::endl;
-    
+   
 
     if (self->should_update_cursor == false) {
         self->cursor_old_row = oldpos.row;
@@ -271,16 +321,22 @@ int Terminal::settermprop(VTermProp prop, VTermValue *val, void *user) {
         case VTERM_PROP_CURSORBLINK:
             break;
         case VTERM_PROP_CURSORSHAPE:
-            if (val->number == VTERM_PROP_CURSORSHAPE_BLOCK)
+            self->cursor_type_old = self->cursor_type;
+            self->cursor_update_type = true;
+
+            if (val->number == VTERM_PROP_CURSORSHAPE_BLOCK) {
                 self->cursor_type = EINK_CURSOR_BLOCK;
-            else if (val->number == VTERM_PROP_CURSORSHAPE_BAR_LEFT)
+            }
+            else if (val->number == VTERM_PROP_CURSORSHAPE_BAR_LEFT) {
                 self->cursor_type = EINK_CURSOR_VERTICAL;
-            else
+            }
+            else {
                 self->cursor_type = EINK_CURSOR_HORIZONTAL;
-            
+            }
+
             pos.col = self->cursor_new_col;
             pos.row = self->cursor_new_row;
-            //movecursor(pos, pos, self->cursor_visible?1:0, user);
+            movecursor(pos, pos, self->cursor_visible?1:0, user);
 
             break;
         case VTERM_PROP_ALTSCREEN:
@@ -343,10 +399,20 @@ bool Terminal::handleEvent(int fd, struct epoll_event* event) {
         if (should_update || should_update_cursor) {
 
             eink.config.no_refresh = true;
-
             eink.ot_config.padding = FULL_PADDING;
             
             if (should_update) {
+
+                if ((cursor_new_col == cursor_old_col + 1) && update_end_col > cursor_new_col && !writer_mode) {
+                    //writer_mode = true; No working well with neovim. need
+                    //better detection method
+                    writer_first_time = false;
+                }
+                
+                // std::cout << writer_first_time << ", " << writer_mode << 
+                //     ", " << cursor_new_col << ", " << cursor_old_col << ", " << update_end_col << 
+                //     ", " << update_end_row << std::endl;
+
                 updateScreen(update_start_row, update_start_col, 
                         update_end_row - update_start_row, update_end_col - update_start_col);
             }
@@ -368,10 +434,33 @@ bool Terminal::handleEvent(int fd, struct epoll_event* event) {
 
 
             eink.config.no_refresh = false;
-            eink.refreshRect(0, 0, eink.rows, eink.cols);
 
+            
+            if (should_update) {
+                update_start_col = std::min(std::min(update_start_col, cursor_new_col), cursor_old_col);
+                update_start_row = std::min(std::min(update_start_row, cursor_new_row), cursor_old_row);
+                update_end_col = std::max(std::max(update_end_col, cursor_new_col), cursor_old_col);
+                update_end_row = std::max(std::max(update_end_row, cursor_new_row), cursor_old_row);
+                eink.refreshRect(update_start_row, 0, update_end_row - update_start_row, eink.cols);
+            }
+            else if (should_update_cursor){
+
+                int start_col = std::min(cursor_new_col, cursor_old_col);
+                int start_row = std::min(cursor_new_row, cursor_old_row);
+                int end_col = std::max(cursor_new_col, cursor_old_col);
+                int end_row = std::max(cursor_new_row, cursor_old_row);
+                eink.refreshRect(start_row, start_col, end_row - start_row + 1, end_col - start_col + 1);
+
+            }
+
+            
             should_update_cursor = false;
             should_update = false;
+            update_end_col = 0;
+            update_end_row = 0;
+            update_start_col = 1337;
+            update_start_row = 1337;
+
             timerfd_settime(timer_fd_dmg, 0, &ts_off, 0);
             timerfd_settime(timer_fd_upd, 0, &ts_upd, 0);
             upd_timer_on = true;
@@ -381,25 +470,37 @@ bool Terminal::handleEvent(int fd, struct epoll_event* event) {
     else if (fd == timer_fd_upd) {
         // std::cout << "UPD timer" << std::endl;
 
-        if (should_update || should_update_cursor) {
-
-
+        
+        if (should_update || should_update_cursor || writer_mode) {
+            bool w;
+            w = writer_mode;
+            writer_mode = false;
+            writer_first_time = true; 
             eink.config.no_refresh = true;
 
             eink.ot_config.padding = FULL_PADDING;
             
-            if (should_update) {
+            if (w) {
+
+                update_start_col = 0;
+                update_start_row = 0;
+                update_end_row = eink.rows;
+                update_end_col = eink.cols;
+            }
+
+            if (should_update || w) {
+                
                 updateScreen(update_start_row, update_start_col, 
                         update_end_row - update_start_row, update_end_col - update_start_col);
             }
 
-            if (should_update_cursor) {
+            if (should_update_cursor || w) {
                 // If old cursor is within update region, or cursor doesn move
                 // (but might change type), no need to redraw
                 // old one since it has been 
                 if ((should_update && cursor_old_row >= update_start_row && cursor_old_row < update_end_row &&
                             cursor_old_col >= update_start_col && cursor_old_col < update_end_col) || 
-                        (cursor_old_row == cursor_new_row && cursor_old_col == cursor_new_col))
+                        (cursor_old_row == cursor_new_row && cursor_old_col == cursor_new_col) || w)
                     updateCursor(cursor_new_row, cursor_new_col, cursor_old_row, cursor_old_col, false); 
 
                 else
@@ -413,6 +514,10 @@ bool Terminal::handleEvent(int fd, struct epoll_event* event) {
 
             should_update_cursor = false;
             should_update = false;
+            update_end_col = 0;
+            update_end_row = 0;
+            update_start_row = 1337;
+            update_start_col = 1337;
             timerfd_settime(timer_fd_dmg, 0, &ts_off, 0);
             timerfd_settime(timer_fd_upd, 0, &ts_upd, 0);
             upd_timer_on = true;
@@ -422,9 +527,26 @@ bool Terminal::handleEvent(int fd, struct epoll_event* event) {
             timerfd_settime(timer_fd_upd, 0, &ts_off, 0);
             upd_timer_on = false;
         }
+        
+        writer_first_time = true;
 
     }
 
     return true;
 
 }
+
+
+void Terminal::update_fg_color(VTermColor * c) {
+    vterm_screen_convert_color_to_rgb(screen, c);
+#define FG(x) static_cast<uint8_t>((x^0xFFu) / 2u)
+#define BG(x) static_cast<uint8_t>(x^0xFFu)
+    fbink_set_fg_pen_rgba(FG(c->rgb.red), FG(c->rgb.green), FG(c->rgb.blue), 0xFFu, false, true);
+}
+
+void Terminal::update_bg_color(VTermColor * c) {
+    vterm_screen_convert_color_to_rgb(screen, c);
+    fbink_set_bg_pen_rgba(BG(c->rgb.red), BG(c->rgb.green), BG(c->rgb.blue), 0xFFu, false, true);
+#undef BG
+#undef FG
+    }
